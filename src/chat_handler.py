@@ -41,6 +41,7 @@ class ChatHandler:
         research_handler,
         preset_manager,
         upload_handler,
+        memory_distillation_service=None,
     ):
         self.session_manager = session_manager
         self.memory_manager = memory_manager
@@ -48,6 +49,7 @@ class ChatHandler:
         self.research_handler = research_handler
         self.preset_manager = preset_manager
         self.upload_handler = upload_handler
+        self.memory_distillation_service = memory_distillation_service
 
     # ------------------------------------------------------------------
     # Preset helpers

@@ -42,11 +42,12 @@ def _content_tokens(text: str) -> list:
 
 
 class ChatProcessor:
-    def __init__(self, memory_manager, personal_docs_manager, memory_vector=None, skills_manager=None):
+    def __init__(self, memory_manager, personal_docs_manager, memory_vector=None, skills_manager=None, memory_distillation_service=None):
         self.memory_manager = memory_manager
         self.personal_docs_manager = personal_docs_manager
         self.memory_vector = memory_vector
         self.skills_manager = skills_manager
+        self.memory_distillation_service = memory_distillation_service
 
     # Minimum similarity score for RAG results to be injected
     RAG_SIMILARITY_THRESHOLD = 0.35
@@ -318,3 +319,51 @@ class ChatProcessor:
                 preface.append(untrusted_context_message("available skills index", "\n".join(lines)))
 
         return preface, rag_sources, web_sources
+
+    def process_conversation_episode(self, episode_content: str, source_episode_id: int = None) -> Dict[str, Any]:
+        """
+        Process a conversation episode through the memory distillation pipeline.
+        
+        Args:
+            episode_content: The content of the conversation episode
+            source_episode_id: The ID of the source episode (if any)
+            
+        Returns:
+            Dictionary with processing results
+        """
+        if self.memory_distillation_service:
+            try:
+                result = self.memory_distillation_service.process_conversation_episode(
+                    episode_content, source_episode_id
+                )
+                logger.info(f"Memory distillation result: {result}")
+                return result
+            except Exception as e:
+                logger.error(f"Memory distillation failed: {e}")
+                return {"success": False, "error": str(e)}
+        else:
+            logger.warning("Memory distillation service not available")
+            return {"success": False, "error": "Memory distillation service not initialized"}
+    
+    def extract_and_store_memory(self, content: str, metadata: Optional[Dict] = None) -> Dict[str, Any]:
+        """
+        Extract and store memory from content using memory distillation approach.
+        
+        Args:
+            content: Content to extract memory from
+            metadata: Additional metadata for the memory
+            
+        Returns:
+            Dictionary with extraction results
+        """
+        if self.memory_distillation_service:
+            try:
+                result = self.memory_distillation_service.extract_and_store_memory(content, metadata)
+                logger.info(f"Memory extraction result: {result}")
+                return result
+            except Exception as e:
+                logger.error(f"Memory extraction failed: {e}")
+                return {"success": False, "error": str(e)}
+        else:
+            logger.warning("Memory distillation service not available")
+            return {"success": False, "error": "Memory distillation service not initialized"}

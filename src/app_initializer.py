@@ -73,6 +73,15 @@ def initialize_managers(base_dir: str, rag_manager=None) -> Dict[str, Any]:
         logger.warning(f"MemoryVectorStore DEGRADED: {e}")
         memory_vector = None
 
+    # Initialize memory distillation service
+    memory_distillation_service = None
+    try:
+        from src.anchor_integration.memory_service import initialize_memory_distillation_service
+        memory_distillation_service = initialize_memory_distillation_service(memory_manager, memory_vector)
+        logger.info("Memory distillation service initialized")
+    except Exception as e:
+        logger.warning(f"Memory distillation service initialization failed: {e}")
+
     # Initialize processors
     chat_processor = ChatProcessor(memory_manager, personal_docs_manager, memory_vector=memory_vector, skills_manager=skills_manager)
     research_handler = ResearchHandler()
@@ -85,6 +94,7 @@ def initialize_managers(base_dir: str, rag_manager=None) -> Dict[str, Any]:
         research_handler=research_handler,
         preset_manager=preset_manager,
         upload_handler=upload_handler,
+        memory_distillation_service=memory_distillation_service,
     )
     
     # Initialize model discovery
@@ -99,6 +109,7 @@ def initialize_managers(base_dir: str, rag_manager=None) -> Dict[str, Any]:
     return {
         "memory_manager": memory_manager,
         "memory_vector": memory_vector,
+        "memory_distillation_service": memory_distillation_service,
         "skills_manager": skills_manager,
         "session_manager": session_manager,
         "upload_handler": upload_handler,
